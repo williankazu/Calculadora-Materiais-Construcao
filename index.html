@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Produtos - Materiais de Construção</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="main-container">
+        <div class="header-section">
+            <h1><i class="fas fa-hard-hat"></i> Calculadora de Produtos</h1>
+            <p>Materiais de Construção - Gestão de Preços e Markup</p>
+        </div>
+
+        <div class="content-section">
+            <!-- Botões de Ação -->
+            <div class="action-buttons no-print">
+                <button class="btn-action btn-export" onclick="exportToExcel()">
+                    <i class="fas fa-file-excel"></i>
+                    <span>Exportar Excel</span>
+                </button>
+                <button class="btn-action btn-export" onclick="exportToCSV()">
+                    <i class="fas fa-file-csv"></i>
+                    <span>Exportar CSV</span>
+                </button>
+                <button class="btn-action btn-import" onclick="document.getElementById('fileInput').click()">
+                    <i class="fas fa-file-import"></i>
+                    <span>Importar Arquivo</span>
+                </button>
+                <button class="btn-action btn-print" onclick="printProducts()">
+                    <i class="fas fa-print"></i>
+                    <span>Imprimir A4</span>
+                </button>
+            </div>
+            <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" onchange="importFile(event)">
+
+            <!-- Estatísticas -->
+            <div class="stats-container" id="statsContainer">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalProducts">0</div>
+                    <div class="stat-label">Total de Produtos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalCost">R$ 0,00</div>
+                    <div class="stat-label">Custo Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalRevenue">R$ 0,00</div>
+                    <div class="stat-label">Valor de Venda Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="avgMarkup">0%</div>
+                    <div class="stat-label">Markup Médio</div>
+                </div>
+            </div>
+
+            <!-- Formulário de Adicionar Produto -->
+            <div class="form-card no-print">
+                <h2 class="title is-4"><i class="fas fa-plus-circle"></i> Adicionar Novo Produto</h2>
+                <form id="productForm">
+                    <div class="columns is-multiline">
+                        <div class="column is-12-mobile is-6-tablet is-4-desktop">
+                            <label class="label">Nome do Produto *</label>
+                            <div class="control has-icons-left">
+                                <input class="input" type="text" id="productName" placeholder="Ex: Cimento CP-II" required>
+                                <span class="icon is-small is-left">
+                                    <i class="fas fa-tag"></i>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="column is-6-mobile is-3-tablet is-2-desktop">
+                            <label class="label">Quantidade *</label>
+                            <div class="control has-icons-left">
+                                <input class="input" type="number" id="quantity" placeholder="0" min="0" step="0.01" required>
+                                <span class="icon is-small is-left">
+                                    <i class="fas fa-cubes"></i>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="column is-6-mobile is-3-tablet is-2-desktop">
+                            <label class="label">Unidade *</label>
+                            <div class="control has-icons-left">
+                                <div class="select is-fullwidth">
+                                    <select id="unit" required>
+                                        <option value="un">Un (Unidade)</option>
+                                        <option value="pc">Pc (Peça)</option>
+                                        <option value="mt">Mt (Metro)</option>
+                                        <option value="m²">M² (Metro²)</option>
+                                        <option value="m³">M³ (Metro³)</option>
+                                        <option value="kg">Kg (Quilo)</option>
+                                        <option value="tb">Tb (Tubo)</option>
+                                        <option value="sc">Sc (Saco)</option>
+                                        <option value="cx">Cx (Caixa)</option>
+                                        <option value="lt">Lt (Litro)</option>
+                                        <option value="gl">Gl (Galão)</option>
+                                        <option value="bd">Bd (Balde)</option>
+                                        <option value="rl">Rl (Rolo)</option>
+                                        <option value="pt">Pt (Pacote)</option>
+                                    </select>
+                                </div>
+                                <span class="icon is-small is-left">
+                                    <i class="fas fa-ruler"></i>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="column is-6-mobile is-6-tablet is-4-desktop">
+                            <label class="label">Preço de Custo (R$) *</label>
+                            <div class="control has-icons-left">
+                                <input class="input" type="number" id="costPrice" placeholder="0.00" min="0" step="0.01" required>
+                                <span class="icon is-small is-left">
+                                    <i class="fas fa-dollar-sign"></i>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="column is-6-mobile is-6-tablet is-4-desktop">
+                            <label class="label">Markup (%)</label>
+                            <div class="control has-icons-left">
+                                <input class="input" type="number" id="markup" placeholder="0" min="0" step="0.01">
+                                <span class="icon is-small is-left">
+                                    <i class="fas fa-percent"></i>
+                                </span>
+                            </div>
+                            <p class="help">Calculado automaticamente se digitar o preço de venda</p>
+                        </div>
+
+                        <div class="column is-12-mobile is-6-tablet is-4-desktop">
+                            <label class="label">Preço de Venda (R$)</label>
+                            <div class="control has-icons-left">
+                                <input class="input" type="number" id="salePrice" placeholder="0.00" min="0" step="0.01">
+                                <span class="icon is-small is-left">
+                                    <i class="fas fa-cash-register"></i>
+                                </span>
+                            </div>
+                            <p class="help">Calculado automaticamente se digitar o markup</p>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">Observações</label>
+                        <div class="control">
+                            <textarea class="textarea" id="notes" placeholder="Adicione observações sobre o produto..." rows="2"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <div class="control">
+                            <button type="submit" class="button is-primary is-fullwidth btn-primary">
+                                <span class="icon">
+                                    <i class="fas fa-plus"></i>
+                                </span>
+                                <span>Adicionar Produto</span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Lista de Produtos -->
+            <div class="section">
+                <h2 class="title is-4"><i class="fas fa-list"></i> Produtos Cadastrados</h2>
+                <div id="productsList">
+                    <div class="empty-state">
+                        <i class="fas fa-box-open"></i>
+                        <p>Nenhum produto cadastrado ainda.</p>
+                        <p>Adicione seu primeiro produto acima!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="./script.js"></script>cr
+</body>
+</html>

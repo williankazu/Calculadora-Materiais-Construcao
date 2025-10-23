@@ -1,6 +1,7 @@
-
+ 
         // Array para armazenar produtos
         let products = [];
+        let editingProductId = null; // ID do produto sendo editado
 
         // Carregar produtos do localStorage ao iniciar
         document.addEventListener('DOMContentLoaded', function() {
@@ -83,28 +84,46 @@
                 return;
             }
             
-            const product = {
-                id: Date.now(),
+            const productData = {
                 name: document.getElementById('productName').value,
                 quantity: parseFloat(document.getElementById('quantity').value),
                 unit: document.getElementById('unit').value,
                 costPrice: costPrice,
                 markup: finalMarkup,
                 salePrice: finalSalePrice,
-                notes: document.getElementById('notes').value,
-                createdAt: new Date().toLocaleString('pt-BR')
+                notes: document.getElementById('notes').value
             };
 
-            products.push(product);
+            // MODO EDIÇÃO
+            if (editingProductId !== null) {
+                const productIndex = products.findIndex(p => p.id === editingProductId);
+                if (productIndex !== -1) {
+                    products[productIndex] = {
+                        ...products[productIndex],
+                        ...productData,
+                        id: editingProductId // Manter o ID original
+                    };
+                    showNotification('Produto atualizado com sucesso!', 'success');
+                    cancelEdit();
+                }
+            } 
+            // MODO ADICIONAR
+            else {
+                const newProduct = {
+                    id: Date.now(),
+                    ...productData,
+                    createdAt: new Date().toLocaleString('pt-BR')
+                };
+                products.push(newProduct);
+                showNotification('Produto adicionado com sucesso!', 'success');
+            }
+
             saveProducts();
             displayProducts();
             updateStats();
             
             // Limpar formulário
             document.getElementById('productForm').reset();
-            
-            // Mostrar mensagem de sucesso
-            showNotification('Produto adicionado com sucesso!', 'success');
         });
 
         function displayProducts() {
@@ -132,6 +151,9 @@
                         </div>
                         <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
                             <span class="markup-badge">Markup: ${product.markup.toFixed(2)}%</span>
+                            <button class="btn-edit no-print" onclick="editProduct(${product.id})">
+                                <i class="fas fa-edit"></i> Editar
+                            </button>
                             <button class="btn-delete no-print" onclick="deleteProduct(${product.id})">
                                 <i class="fas fa-trash"></i> Excluir
                             </button>
@@ -182,6 +204,57 @@
                 updateStats();
                 showNotification('Produto excluído com sucesso!', 'danger');
             }
+        }
+
+        // FUNÇÃO EDITAR PRODUTO
+        function editProduct(id) {
+            const product = products.find(p => p.id === id);
+            if (!product) return;
+
+            // Preencher o formulário com os dados do produto
+            document.getElementById('productName').value = product.name;
+            document.getElementById('quantity').value = product.quantity;
+            document.getElementById('unit').value = product.unit;
+            document.getElementById('costPrice').value = product.costPrice.toFixed(2);
+            document.getElementById('markup').value = product.markup.toFixed(2);
+            document.getElementById('salePrice').value = product.salePrice.toFixed(2);
+            document.getElementById('notes').value = product.notes || '';
+
+            // Ativar modo de edição
+            editingProductId = id;
+
+            // Mudar aparência do formulário
+            const formCard = document.getElementById('formCard');
+            formCard.classList.add('editing-mode');
+            
+            // Atualizar título e botões
+            document.getElementById('formTitle').innerHTML = '<i class="fas fa-edit"></i> Editando Produto';
+            document.getElementById('submitBtnText').textContent = 'Atualizar Produto';
+            document.getElementById('submitBtn').querySelector('i').className = 'fas fa-save';
+            document.getElementById('cancelBtn').style.display = 'block';
+
+            // Scroll para o formulário
+            formCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            showNotification('Editando produto. Altere os campos e clique em Atualizar.', 'info');
+        }
+
+        // FUNÇÃO CANCELAR EDIÇÃO
+        function cancelEdit() {
+            editingProductId = null;
+            
+            // Limpar formulário
+            document.getElementById('productForm').reset();
+            
+            // Remover modo de edição
+            const formCard = document.getElementById('formCard');
+            formCard.classList.remove('editing-mode');
+            
+            // Restaurar título e botões
+            document.getElementById('formTitle').innerHTML = '<i class="fas fa-plus-circle"></i> Adicionar Novo Produto';
+            document.getElementById('submitBtnText').textContent = 'Adicionar Produto';
+            document.getElementById('submitBtn').querySelector('i').className = 'fas fa-plus';
+            document.getElementById('cancelBtn').style.display = 'none';
         }
 
         function updateStats() {

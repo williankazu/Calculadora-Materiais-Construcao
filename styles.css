@@ -1,4 +1,4 @@
-
+ 
         :root {
             --primary-color: #ff6b35;
             --secondary-color: #004e89;
@@ -142,6 +142,50 @@
 
         .btn-delete:hover {
             background: #c0392b;
+        }
+
+        .btn-edit {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-edit:hover {
+            background: #2980b9;
+        }
+
+        .btn-cancel {
+            background: #95a5a6;
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-right: 1rem;
+        }
+
+        .btn-cancel:hover {
+            background: #7f8c8d;
+        }
+
+        .editing-mode {
+            border: 3px solid #3498db;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.4);
+            }
+            50% {
+                box-shadow: 0 0 20px 10px rgba(52, 152, 219, 0.1);
+            }
         }
 
         .empty-state {
